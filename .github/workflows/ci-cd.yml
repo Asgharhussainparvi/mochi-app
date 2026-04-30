@@ -199,24 +199,21 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}        # ← ADDED: ngrok port
+          port: ${{ secrets.DEPLOY_PORT }}
           script: |
             cd /github/workspace
             
-            # Debugging: Check current directory
             echo "Current working directory:"
             pwd
-            ls  # List the contents to confirm files exist
+            ls
             
-            # Pull the latest changes from the repository
             git pull origin main
             
-            # Set Docker images
-            export DOCKER_IMAGE_API=***/mochi-api:2487170
-            export DOCKER_IMAGE_WORKER=***/mochi-worker:2487170
-            export DOCKER_IMAGE_FRONTEND=***/mochi-frontend:2487170
+            # Use the DEPLOY_TAG from the artifact
+            export DOCKER_IMAGE_API=${{ secrets.DOCKER_HUB_USERNAME }}/mochi-api:${DEPLOY_TAG}
+            export DOCKER_IMAGE_WORKER=${{ secrets.DOCKER_HUB_USERNAME }}/mochi-worker:${DEPLOY_TAG}
+            export DOCKER_IMAGE_FRONTEND=${{ secrets.DOCKER_HUB_USERNAME }}/mochi-frontend:${DEPLOY_TAG}
             
-            # Debugging: Check Docker images
             echo "Pulling Docker image: $DOCKER_IMAGE_API"
             docker pull $DOCKER_IMAGE_API
             
@@ -226,14 +223,10 @@ jobs:
             echo "Pulling Docker image: $DOCKER_IMAGE_FRONTEND"
             docker pull $DOCKER_IMAGE_FRONTEND
             
-            # Verify docker-compose configuration
-            docker-compose -f docker-compose.yml config  # This checks the compose file for errors
+            docker-compose -f docker-compose.yml config
             
-            # Run docker-compose
-            docker-compose up -d --no-build --scale worker=1 api worker frontend
+            docker-compose up -d --no-build --scale worker=1
             
-            # Clean up unused Docker images
             docker image prune -f
             
-            # Output success message
-            echo "Deployed 2487170 successfully"
+            echo "Deployed ${DEPLOY_TAG} successfully"
