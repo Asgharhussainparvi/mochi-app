@@ -202,19 +202,19 @@ jobs:
           port: ${{ secrets.DEPLOY_PORT }}        # ← ADDED: ngrok port
           script: |
             cd /github/workspace/mochi-app
-
+            
             git pull origin main
-
-            set DOCKER_IMAGE_API=${{ env.IMAGE_API }}:${{ env.DEPLOY_TAG }}
-            set DOCKER_IMAGE_WORKER=${{ env.IMAGE_WORKER }}:${{ env.DEPLOY_TAG }}
-            set DOCKER_IMAGE_FRONTEND=${{ env.IMAGE_FRONTEND }}:${{ env.DEPLOY_TAG }}
-
-            docker pull %DOCKER_IMAGE_API%
-            docker pull %DOCKER_IMAGE_WORKER%
-            docker pull %DOCKER_IMAGE_FRONTEND%
-
+            
+            export DOCKER_IMAGE_API=***/mochi-api:2487170
+            export DOCKER_IMAGE_WORKER=***/mochi-worker:2487170
+            export DOCKER_IMAGE_FRONTEND=***/mochi-frontend:2487170
+            
+            docker pull $DOCKER_IMAGE_API
+            docker pull $DOCKER_IMAGE_WORKER
+            docker pull $DOCKER_IMAGE_FRONTEND
+            
             docker compose up -d --no-build --scale worker=1 api worker frontend
-
+            
             docker image prune -f
-
-            echo Deployed ${{ env.DEPLOY_TAG }} successfully
+            
+            echo "Deployed 2487170 successfully"
