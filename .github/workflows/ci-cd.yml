@@ -70,16 +70,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
   
-      # --- Confirm the lock file exists ---
-      - name: Check frontend lock file
-        run: |
-          if [ ! -f frontend/package-lock.json ]; then
-            echo "Error: frontend/package-lock.json not found!"
-            exit 1
-          fi
-          ls -l frontend/package-lock.json
-  
-      # --- Setup Node with caching ---
+      # --- Setup Node.js with npm caching ---
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -88,19 +79,19 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
   
       # --- Install dependencies ---
-      - name: Install
-        working-directory: frontend
+      - name: Install npm dependencies
         run: npm ci
-  
-      # --- Type check ---
-      - name: Type-check
         working-directory: frontend
+  
+      # --- Type-check ---
+      - name: Type-check
         run: npx tsc --noEmit || true
+        working-directory: frontend
   
       # --- Build frontend ---
       - name: Build
-        working-directory: frontend
         run: npm run build
+        working-directory: frontend
 
   # ─────────────────────────────────────────────
   # 3. Build & Push Docker images (main only)
