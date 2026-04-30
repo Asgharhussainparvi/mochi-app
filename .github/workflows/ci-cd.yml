@@ -59,7 +59,7 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/mochi_test
           REDIS_URL: redis://localhost:6379/0
           SECRET_KEY: test-secret-key-ci
-        run: pytest tests/ -v --tb=short || true   # allow empty test suite in scaffold
+        run: pytest tests/ -v --tb=short || true
 
   # ─────────────────────────────────────────────
   # 2. Lint Frontend
@@ -69,28 +69,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-  
-      # Verify lock file exists
+
       - name: Check lock file
         run: ls -l frontend/package-lock.json
-  
-      # Setup Node.js with npm caching
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-        continue-on-error: true  # avoids workflow failure if cache fails
-  
+        continue-on-error: true
+
       - name: Install npm dependencies
         working-directory: frontend
         run: npm ci
-  
+
       - name: Type-check
         working-directory: frontend
         run: npx tsc --noEmit || true
-  
+
       - name: Build frontend
         working-directory: frontend
         run: npm run build
@@ -126,7 +124,6 @@ jobs:
           echo "tag=${SHORT_SHA}" >> $GITHUB_OUTPUT
           echo "date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
 
-      # --- API image ---
       - name: Build & push API
         uses: docker/build-push-action@v6
         with:
@@ -142,7 +139,6 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.created=${{ steps.meta.outputs.date }}
 
-      # --- Worker image ---
       - name: Build & push Worker
         uses: docker/build-push-action@v6
         with:
@@ -155,7 +151,6 @@ jobs:
           cache-from: type=gha,scope=worker
           cache-to: type=gha,mode=max,scope=worker
 
-      # --- Frontend image ---
       - name: Build & push Frontend
         uses: docker/build-push-action@v6
         with:
@@ -167,7 +162,6 @@ jobs:
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
 
-      # --- Save tag for deploy ---
       - name: Write deploy tag
         run: echo "${{ steps.meta.outputs.tag }}" > /tmp/deploy_tag.txt
 
@@ -205,29 +199,22 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}        # ← ADDED: ngrok port
           script: |
-            set -e
-            cd /opt/mochi-app
+            cd C:\mochi-app
 
-            # Pull latest compose file
             git pull origin main
 
-            # Set image tags
-            export DOCKER_IMAGE_API=${{ env.IMAGE_API }}:${{ env.DEPLOY_TAG }}
-            export DOCKER_IMAGE_WORKER=${{ env.IMAGE_WORKER }}:${{ env.DEPLOY_TAG }}
-            export DOCKER_IMAGE_FRONTEND=${{ env.IMAGE_FRONTEND }}:${{ env.DEPLOY_TAG }}
+            set DOCKER_IMAGE_API=${{ env.IMAGE_API }}:${{ env.DEPLOY_TAG }}
+            set DOCKER_IMAGE_WORKER=${{ env.IMAGE_WORKER }}:${{ env.DEPLOY_TAG }}
+            set DOCKER_IMAGE_FRONTEND=${{ env.IMAGE_FRONTEND }}:${{ env.DEPLOY_TAG }}
 
-            # Pull new images
-            docker pull $DOCKER_IMAGE_API
-            docker pull $DOCKER_IMAGE_WORKER
-            docker pull $DOCKER_IMAGE_FRONTEND
+            docker pull %DOCKER_IMAGE_API%
+            docker pull %DOCKER_IMAGE_WORKER%
+            docker pull %DOCKER_IMAGE_FRONTEND%
 
-            # Zero-downtime rolling restart
-            docker compose up -d --no-build \
-              --scale worker=1 \
-              api worker frontend
+            docker compose up -d --no-build --scale worker=1 api worker frontend
 
-            # Clean old images
             docker image prune -f
 
-            echo "✅ Deployed ${{ env.DEPLOY_TAG }} successfully"
+            echo Deployed ${{ env.DEPLOY_TAG }} successfully
