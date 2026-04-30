@@ -201,7 +201,7 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT }}        # ← ADDED: ngrok port
           script: |
-            cd /github/workspace/mochi-app
+            cd /github/workspace
             
             # Debugging: Check current directory
             echo "Current working directory:"
