@@ -1,0 +1,89 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mochi_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    image: ${DOCKER_IMAGE_API:-mochi-api:latest}
+    build:
+      context: ./backend
+      target: api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/mochi_db
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - video_storage:/app/storage
+
+  worker:
+    image: ${DOCKER_IMAGE_WORKER:-mochi-worker:latest}
+    build:
+      context: ./backend
+      target: worker
+    restart: unless-stopped
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/mochi_db
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - video_storage:/app/storage
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  frontend:
+    image: ${DOCKER_IMAGE_FRONTEND:-mochi-frontend:latest}
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  video_storage:

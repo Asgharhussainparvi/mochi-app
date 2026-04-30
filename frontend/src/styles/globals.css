@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --void: #03020a;
+  --plasma: #a78bfa;
+  --glow: #7c3aed;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--void);
+  color: #f1f0ff;
+  font-family: 'Space Grotesk', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Nebula background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124, 58, 237, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(167, 139, 250, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(99, 16, 242, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glass {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(167,139,250,0.12);
+  backdrop-filter: blur(12px);
+}
+
+.glow-border {
+  box-shadow: 0 0 0 1px rgba(124,58,237,0.4), 0 0 20px rgba(124,58,237,0.15);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #c4b5fd, #7c3aed, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.btn-primary {
+  @apply bg-glow hover:bg-mochi-500 text-white font-semibold px-6 py-3 rounded-xl
+         transition-all duration-200 hover:shadow-lg hover:shadow-purple-900/40
+         active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.input-field {
+  @apply w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white
+         placeholder-white/30 focus:outline-none focus:border-plasma/50 focus:bg-white/8
+         transition-all duration-200 resize-none;
+}
+
+@layer utilities {
+  .bg-white\/8 { background-color: rgba(255,255,255,0.08); }
+}
