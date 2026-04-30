@@ -196,37 +196,37 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
-          script: |
-            cd /github/workspace
-            
-            echo "Current working directory:"
-            pwd
-            ls
-            
-            git pull origin main
-            
-            # Use the DEPLOY_TAG from the artifact
-            export DOCKER_IMAGE_API=${{ secrets.DOCKER_HUB_USERNAME }}/mochi-api:${DEPLOY_TAG}
-            export DOCKER_IMAGE_WORKER=${{ secrets.DOCKER_HUB_USERNAME }}/mochi-worker:${DEPLOY_TAG}
-            export DOCKER_IMAGE_FRONTEND=${{ secrets.DOCKER_HUB_USERNAME }}/mochi-frontend:${DEPLOY_TAG}
-            
-            echo "Pulling Docker image: $DOCKER_IMAGE_API"
-            docker pull $DOCKER_IMAGE_API
-            
-            echo "Pulling Docker image: $DOCKER_IMAGE_WORKER"
-            docker pull $DOCKER_IMAGE_WORKER
-            
-            echo "Pulling Docker image: $DOCKER_IMAGE_FRONTEND"
-            docker pull $DOCKER_IMAGE_FRONTEND
-            
-            docker-compose -f docker-compose.yml config
-            
-            docker-compose up -d --no-build --scale worker=1
-            
-            docker image prune -f
-            
-            echo "Deployed ${DEPLOY_TAG} successfully"
+             host: ${{ secrets.DEPLOY_HOST }}
+             username: ${{ secrets.DEPLOY_USER }}
+             key: ${{ secrets.DEPLOY_SSH_KEY }}
+             port: ${{ secrets.DEPLOY_PORT }}
+             script: |
+               cd /path/to/your/mochi-app
+               
+               echo "Current working directory:"
+               pwd
+               ls
+               
+               git pull origin main
+               
+               # Use the DEPLOY_TAG from the artifact
+               export DOCKER_IMAGE_API=${{ secrets.DOCKER_HUB_USERNAME }}/mochi-api:${DEPLOY_TAG}
+               export DOCKER_IMAGE_WORKER=${{ secrets.DOCKER_HUB_USERNAME }}/mochi-worker:${DEPLOY_TAG}
+               export DOCKER_IMAGE_FRONTEND=${{ secrets.DOCKER_HUB_USERNAME }}/mochi-frontend:${DEPLOY_TAG}
+               
+               echo "Pulling Docker image: $DOCKER_IMAGE_API"
+               docker pull $DOCKER_IMAGE_API
+               
+               echo "Pulling Docker image: $DOCKER_IMAGE_WORKER"
+               docker pull $DOCKER_IMAGE_WORKER
+               
+               echo "Pulling Docker image: $DOCKER_IMAGE_FRONTEND"
+               docker pull $DOCKER_IMAGE_FRONTEND
+               
+               docker-compose -f docker-compose.yml config
+               
+               docker-compose up -d --no-build --scale worker=1
+               
+               docker image prune -f
+               
+               echo "Deployed ${DEPLOY_TAG} successfully"
