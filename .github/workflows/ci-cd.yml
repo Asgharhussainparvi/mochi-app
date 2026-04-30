@@ -203,18 +203,37 @@ jobs:
           script: |
             cd /github/workspace/mochi-app
             
+            # Debugging: Check current directory
+            echo "Current working directory:"
+            pwd
+            ls  # List the contents to confirm files exist
+            
+            # Pull the latest changes from the repository
             git pull origin main
             
+            # Set Docker images
             export DOCKER_IMAGE_API=***/mochi-api:2487170
             export DOCKER_IMAGE_WORKER=***/mochi-worker:2487170
             export DOCKER_IMAGE_FRONTEND=***/mochi-frontend:2487170
             
+            # Debugging: Check Docker images
+            echo "Pulling Docker image: $DOCKER_IMAGE_API"
             docker pull $DOCKER_IMAGE_API
+            
+            echo "Pulling Docker image: $DOCKER_IMAGE_WORKER"
             docker pull $DOCKER_IMAGE_WORKER
+            
+            echo "Pulling Docker image: $DOCKER_IMAGE_FRONTEND"
             docker pull $DOCKER_IMAGE_FRONTEND
             
-            docker compose up -d --no-build --scale worker=1 api worker frontend
+            # Verify docker-compose configuration
+            docker-compose -f docker-compose.yml config  # This checks the compose file for errors
             
+            # Run docker-compose
+            docker-compose up -d --no-build --scale worker=1 api worker frontend
+            
+            # Clean up unused Docker images
             docker image prune -f
             
+            # Output success message
             echo "Deployed 2487170 successfully"
